@@ -1,165 +1,87 @@
+
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
-void main() => runApp(const A());
+void main() => runApp(const MyApp());
 
-class A extends StatelessWidget {
-  const A({super.key});
-
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: B(),
-    );
-  }
+  Widget build(BuildContext context) =>
+      const MaterialApp(debugShowCheckedModeBanner: false, home: LoginPage());
 }
 
-class B extends StatefulWidget {
-  const B({super.key});
-
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
   @override
-  State<B> createState() => C();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class C extends State<B> {
-  final List<Map<String, String>> s = [];
+class _LoginPageState extends State<LoginPage> {
+  final userCtrl = TextEditingController();
+  final passCtrl = TextEditingController();
 
-  final Map<String, TextEditingController> c = {
-    "Name": TextEditingController(),
-    "Date of Birth": TextEditingController(),
-    "Blood Group": TextEditingController(),
-    "Address": TextEditingController(),
-    "Parent Name": TextEditingController(),
-  };
+  bool isAlphabet(String v) =>
+      v.codeUnits.every((c) => (c >= 65 && c <= 90) || (c >= 97 && c <= 122));
 
-  Widget f(String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: TextField(
-        controller: c[label],
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-        ).copyWith(labelText: label),
-      ),
-    );
-  }
-
-  void d() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Add Student Details"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: c.keys.map(f).toList(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: a,
-            child: const Text("Add"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void a() {
-    final e = c.entries
-        .where((x) => x.value.text.isEmpty)
-        .map((x) => x.key)
-        .toList();
-
-    if (e.isNotEmpty) {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text("Missing Fields"),
-          content: Text("Fill: ${e.join(', ')}"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
-        ),
-      );
+  void loginCheck() {
+    final u = userCtrl.text, p = passCtrl.text;
+    if (u.isEmpty || p.isEmpty) {
+      Fluttertoast.showToast(msg: "Please enter all fields");
       return;
     }
-
-    setState(() {
-      s.add({
-        "name": c["Name"]!.text,
-        "dob": c["Date of Birth"]!.text,
-        "blood": c["Blood Group"]!.text,
-        "address": c["Address"]!.text,
-        "parent": c["Parent Name"]!.text,
-      });
-    });
-
-    c.values.forEach((x) => x.clear());
-    Navigator.pop(context);
+    if (!isAlphabet(u)) {
+      Fluttertoast.showToast(
+          msg: "Username must contain only alphabets",
+          backgroundColor: Colors.red,
+          textColor: Colors.white);
+      return;
+    }
+    if (int.tryParse(p) == null) {
+      Fluttertoast.showToast(
+          msg: "Password must contain only numbers",
+          backgroundColor: Colors.red,
+          textColor: Colors.white);
+      return;
+    }
+    Fluttertoast.showToast(
+        msg: "Login Successful",
+        backgroundColor: Colors.green,
+        textColor: Colors.white);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("STUDENT MANAGEMENT SYSTEM"),
-        centerTitle: true,
-        backgroundColor: Colors.orange,
-      ),
-      body: s.isEmpty
-          ? const Center(child: Text("No Students Details Added"))
-          : ListView(
-              children: s.asMap().entries.map((e) {
-                final i = e.key;
-                final x = e.value;
-
-                return Card(
-                  margin: const EdgeInsets.all(10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  color: Colors.orange[50],
-                  child: ExpansionTile(
-                    title: Text(
-                      x["name"]!,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    children: [
-                      ListTile(
-                        title: Text("Date of Birth: ${x["dob"]}"),
-                      ),
-                      ListTile(
-                        title: Text("Blood Group: ${x["blood"]}"),
-                      ),
-                      ListTile(
-                        title: Text("Address: ${x["address"]}"),
-                      ),
-                      ListTile(
-                        title: Text("Parent Name: ${x["parent"]}"),
-                      ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () =>
-                              setState(() => s.removeAt(i)),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: d,
-        backgroundColor: Colors.orange,
-        child: const Icon(Icons.add),
+      body: Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text("Login Page",
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 25),
+          SizedBox(
+              width: 280,
+              child: TextField(
+                  controller: userCtrl,
+                  decoration: const InputDecoration(
+                      labelText: "Username",
+                      border: OutlineInputBorder()))),
+          const SizedBox(height: 12),
+          SizedBox(
+              width: 280,
+              child: TextField(
+                  controller: passCtrl,
+                  obscureText: true,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                      labelText: "Password",
+                      border: OutlineInputBorder()))),
+          const SizedBox(height: 18),
+          SizedBox(
+              width: 280,
+              child:
+                  ElevatedButton(onPressed: loginCheck, child: const Text("Login")))
+        ]),
       ),
     );
   }
