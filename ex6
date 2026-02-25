@@ -1,0 +1,185 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyStoreApp());
+}
+
+class MyStoreApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+      ),
+      home: HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int currentIndex = 0;
+
+  List<Map<String, dynamic>> products = [
+    {"name": "Shoes", "price": 2000},
+    {"name": "T-Shirt", "price": 800},
+    {"name": "Watch", "price": 1500},
+  ];
+
+  List<Map<String, dynamic>> cart = [];
+
+  void addToCart(Map<String, dynamic> product) {
+    setState(() {
+      int index =
+          cart.indexWhere((item) => item["name"] == product["name"]);
+
+      if (index >= 0) {
+        cart[index]["qty"] += 1;
+      } else {
+        cart.add({
+          "name": product["name"],
+          "price": product["price"],
+          "qty": 1
+        });
+      }
+    });
+  }
+
+  void removeFromCart(int index) {
+    setState(() {
+      cart.removeAt(index);
+    });
+  }
+
+  int calculateTotal() {
+    int total = 0;
+    for (var item in cart) {
+      total += (item["price"] as int) * (item["qty"] as int);
+    }
+    return total;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Simple Store"),
+        centerTitle: true,
+      ),
+      body: currentIndex == 0 ? buildProductScreen() : buildCartScreen(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+        },
+        items: [
+          BottomNavigationBarItem(
+              icon: Icon(Icons.store), label: "Products"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart), label: "Cart"),
+        ],
+      ),
+    );
+  }
+
+  Widget buildProductScreen() {
+    return GridView.builder(
+      padding: EdgeInsets.all(10),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.9,
+      ),
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        return Card(
+          elevation: 5,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.shopping_bag, size: 50, color: Colors.indigo),
+              SizedBox(height: 10),
+              Text(products[index]["name"],
+                  style: TextStyle(fontSize: 18)),
+              Text("₹ ${products[index]["price"]}",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700])),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () {
+                  addToCart(products[index]);
+                },
+                child: Text("Add to Cart"),
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget buildCartScreen() {
+    return cart.isEmpty
+        ? Center(child: Text("Cart is Empty"))
+        : Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: cart.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      margin: EdgeInsets.all(8),
+                      child: ListTile(
+                        title: Text(cart[index]["name"]),
+                        subtitle: Text(
+                            "₹ ${cart[index]["price"]} x ${cart[index]["qty"]}"),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            removeFromCart(index);
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    Text(
+                      "Total: ₹ ${calculateTotal()}",
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 10),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          minimumSize: Size(double.infinity, 45)),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text("Order Confirmed Successfully!")),
+                        );
+                      },
+                      child: Text("Checkout"),
+                    )
+                  ],
+                ),
+              )
+            ],
+          );
+  }
+}
